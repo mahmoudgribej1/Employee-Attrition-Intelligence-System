@@ -1,0 +1,10 @@
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+
+# Environment
+.env
+dbt_env/
+venv/
