@@ -107,25 +107,25 @@ sources:
             data_quality_notes: "94.14% of active employees have low engagement scores (≤3)"
         
         columns:
-          - name: Employee ID
+          - name: Employee_ID
             description: "Employee identifier (links to employee_data.EmpID)"
             tests:
               - not_null
           
-          - name: Survey Date
+          - name: Survey_Date
             description: "Date survey was completed"
           
-          - name: Engagement Score
+          - name: Engagement_Score
             description: "Engagement level score (typically 1-5 scale)"
             tests:
               - not_null
           
-          - name: Satisfaction Score
+          - name: Satisfaction_Score
             description: "Job satisfaction score"
             tests:
               - not_null
           
-          - name: Work-Life Balance Score
+          - name: Work-Life_Balance_Score
             description: "Work-life balance rating"
             tests:
               - not_null
@@ -139,28 +139,28 @@ sources:
             data_quality_notes: "0 hired candidates - no successful recruitments in this dataset"
         
         columns:
-          - name: Applicant ID
+          - name: Applicant_ID
             description: "Unique applicant identifier"
             tests:
               - unique
               - not_null
           
-          - name: Application Date
+          - name: Application_Date
             description: "Date application was submitted"
           
-          - name: First Name
+          - name: First_Name
             description: "Applicant first name"
           
-          - name: Last Name
+          - name: Last_Name
             description: "Applicant last name"
           
           - name: Gender
             description: "Applicant gender"
           
-          - name: Date of Birth
+          - name: Date_of_Birth
             description: "Applicant date of birth"
           
-          - name: Phone Number
+          - name: Phone_Number
             description: "Contact phone"
           
           - name: Email
@@ -175,22 +175,22 @@ sources:
           - name: State
             description: "State of residence"
           
-          - name: Zip Code
+          - name: Zip_Code
             description: "Postal code"
           
           - name: Country
             description: "Country of residence"
           
-          - name: Education Level
+          - name: Education_Level
             description: "Highest education achieved"
           
-          - name: Years of Experience
+          - name: Years_of_Experience
             description: "Years of relevant experience"
           
-          - name: Desired Salary
+          - name: Desired_Salary
             description: "Expected salary"
           
-          - name: Job Title
+          - name: Job_Title
             description: "Position applied for"
           
           - name: Status
@@ -205,21 +205,21 @@ sources:
             training_summary: "Total investment: $1,675,886.09 across 3,000 employees ($558.63 per employee)"
         
         columns:
-          - name: Employee ID
+          - name: Employee_ID
             description: "Employee identifier"
             tests:
               - not_null
           
-          - name: Training Date
+          - name: Training_Date
             description: "Date training was conducted"
           
-          - name: Training Program Name
+          - name: Training_Program_Name
             description: "Name of training program"
           
-          - name: Training Type
+          - name: Training_Type
             description: "Category/format of training"
           
-          - name: Training Outcome
+          - name: Training_Outcome
             description: "Result (Completed/Failed/In Progress)"
           
           - name: Location
@@ -228,8 +228,8 @@ sources:
           - name: Trainer
             description: "Training instructor"
           
-          - name: Training Duration(Days)
+          - name: Training_Duration(Days)
             description: "Length of training in days"
           
-          - name: Training Cost
+          - name: Training_Cost
             description: "Cost of training program"
