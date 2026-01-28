@@ -13,20 +13,36 @@ SILVER RECRUITMENT CLEANED
 ================================================================================
 Purpose: Clean and validate recruitment/application data
 
-BUSINESS LOGIC DISCOVERY:
-  - Recruitment system tracks: Applied → In Review → Interviewing → Offered
-  - "Hired" status does NOT exist in recruitment_data
-  - Actual hires are identified by joining with employee_data (StartDate)
-  - This is common: separate recruitment and HRIS systems
+CRITICAL DATA QUALITY ISSUES DISCOVERED:
+  ⚠️  ISSUE 1: Recruitment and Employee datasets are NOT linked
+      - recruitment_data: Applicant data from June-July 2023
+      - employee_data: Employee data spanning 2018-2023
+      - Name matches are COINCIDENTAL (common names: Smith, Miller, etc.)
+      
+  ⚠️  ISSUE 2: Impossible timelines detected
+      - 6 out of 7 name matches have hire dates BEFORE application dates
+      - Example: "Randall Miller" applied 2023-06-21 but employee record shows hired 2018-10-04
+      - This proves these are separate synthetic datasets
+      
+  ⚠️  ISSUE 3: Status conflicts
+      - 2 "Rejected" applicants appear in employee_data
+      - This is impossible unless they reapplied (no evidence of this)
 
-Issues Fixed:
-  - Standardize application status values (5 stages: Applied, In Review, Interviewing, Offered, Rejected)
-  - Clean and validate salary data
-  - Validate years of experience
-  - Convert date strings to proper DATE type
-  - JOIN with employee_data to identify who was actually hired
+RESOLUTION:
+  - Added timeline validation (hired date must be AFTER application date)
+  - Flagged invalid matches with has_timeline_issue = 1
+  - Only count as "hired" if timeline is logical (0-365 days)
+  - Documented for stakeholder awareness
+  - For production: Would need proper applicant tracking system (ATS) integration
+
+BUSINESS LOGIC:
+  - Recruitment system tracks: Applied → In Review → Interviewing → Offered
+  - "Hired" status does NOT exist in recruitment_data source
+  - Attempted to cross-reference with employee_data (unsuccessful due to data quality)
+  - In production: Would use ATS system with proper applicant IDs
 
 Created: {{ run_started_at.strftime('%Y-%m-%d') }}
+Updated: {{ run_started_at.strftime('%Y-%m-%d') }} - Added data quality checks
 ================================================================================
 */
 
@@ -135,21 +151,39 @@ validated_data AS (
 ),
 
 -- NEW: Join with employee data to identify who was actually hired
+-- NOTE: Name matching reveals data quality issues - see documentation below
 hiring_verification AS (
     SELECT 
         v.*,
         e.EmpID,
         e.start_date AS employee_start_date,
         
-        -- Flag: Was this applicant actually hired?
+        -- Calculate days from application to hire
+        DATEDIFF(e.start_date, v.application_date) AS days_to_hire_raw,
+        
+        -- DATA QUALITY: Flag impossible timelines
         CASE 
-            WHEN e.EmpID IS NOT NULL THEN 1
+            WHEN e.EmpID IS NOT NULL AND DATEDIFF(e.start_date, v.application_date) < 0 
+            THEN 1  -- Hired BEFORE applying (impossible!)
+            ELSE 0
+        END AS has_timeline_issue,
+        
+        -- Flag: Was this applicant actually hired? (with data quality filter)
+        CASE 
+            -- Only count as "hired" if timeline makes sense (hired AFTER applying)
+            WHEN e.EmpID IS NOT NULL 
+             AND DATEDIFF(e.start_date, v.application_date) >= 0  -- Hired after or same day as application
+             AND DATEDIFF(e.start_date, v.application_date) <= 365  -- Within reasonable timeframe (1 year)
+            THEN 1
             ELSE 0
         END AS was_actually_hired,
         
-        -- Calculate days from application to hire
+        -- Clean days to hire (NULL if invalid)
         CASE 
-            WHEN e.EmpID IS NOT NULL THEN DATEDIFF(e.start_date, v.application_date)
+            WHEN e.EmpID IS NOT NULL 
+             AND DATEDIFF(e.start_date, v.application_date) >= 0
+             AND DATEDIFF(e.start_date, v.application_date) <= 365
+            THEN DATEDIFF(e.start_date, v.application_date)
             ELSE NULL
         END AS days_to_hire
         
@@ -158,7 +192,6 @@ hiring_verification AS (
         ON LOWER(TRIM(v.first_name)) = LOWER(TRIM(e.FirstName))
         AND LOWER(TRIM(v.last_name)) = LOWER(TRIM(e.LastName))
 ),
-
 final_transformations AS (
     SELECT
         *,
@@ -249,6 +282,7 @@ SELECT
     hiring_stage,
     funnel_stage_number,
     was_actually_hired,
+    days_to_hire_raw,
     days_to_hire,
     time_to_hire_category,
     
@@ -288,6 +322,7 @@ SELECT
     had_invalid_experience,
     had_invalid_salary,
     has_invalid_email,
+    has_timeline_issue,
     
     -- Metadata
     processed_at,
