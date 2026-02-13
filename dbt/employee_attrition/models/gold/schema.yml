@@ -45,3 +45,122 @@ models:
       - name: attrition_rate
         tests:
           - not_null
+
+  # ===== Star Schema — Dimensions =====
+
+  - name: dim_department
+    description: "Department dimension — 3 rows (HR, R&D, Sales)"
+    columns:
+      - name: department_key
+        description: "Surrogate key"
+        tests:
+          - unique
+          - not_null
+      - name: department_name
+        description: "Department name"
+        tests:
+          - not_null
+
+  - name: dim_job_role
+    description: "Job role dimension — 9 distinct roles with parent department"
+    columns:
+      - name: job_role_key
+        description: "Surrogate key"
+        tests:
+          - unique
+          - not_null
+      - name: job_role_name
+        tests:
+          - not_null
+      - name: department_name
+        tests:
+          - not_null
+
+  - name: dim_education_field
+    description: "Education field dimension — 6 fields (Life Sciences, Medical, etc.)"
+    columns:
+      - name: education_field_key
+        tests:
+          - unique
+          - not_null
+      - name: education_field_name
+        tests:
+          - not_null
+
+  - name: dim_marital_status
+    description: "Marital status dimension — 3 values (Single, Married, Divorced)"
+    columns:
+      - name: marital_status_key
+        tests:
+          - unique
+          - not_null
+      - name: marital_status_name
+        tests:
+          - not_null
+
+  - name: dim_business_travel
+    description: "Business travel frequency dimension — 3 levels"
+    columns:
+      - name: business_travel_key
+        tests:
+          - unique
+          - not_null
+      - name: business_travel_name
+        tests:
+          - not_null
+
+  # ===== Star Schema — Fact Table =====
+
+  - name: fact_employee_attrition
+    description: >
+      Fact table for Power BI star schema. 1 row per employee (1,470 rows).
+      Contains surrogate keys to all 5 dimensions, all numeric measures,
+      human-readable labels, and derived bands for slicing.
+    columns:
+      - name: employee_key
+        description: "Surrogate key — 1 per employee"
+        tests:
+          - unique
+          - not_null
+      - name: department_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_department')
+              field: department_key
+      - name: job_role_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_job_role')
+              field: job_role_key
+      - name: education_field_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_education_field')
+              field: education_field_key
+      - name: marital_status_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_marital_status')
+              field: marital_status_key
+      - name: business_travel_key
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_business_travel')
+              field: business_travel_key
+      - name: attrition
+        description: "Binary target — 1=left, 0=stayed"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: monthly_income
+        tests:
+          - not_null
+      - name: age
+        tests:
+          - not_null
