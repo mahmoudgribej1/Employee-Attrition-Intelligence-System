@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: gold_ml_features
+    description: >
+      ML-ready feature table. Includes all cleaned numeric features, engineered
+      interaction features, one-hot encoded categoricals, and binary target.
+      NO features derived FROM the target variable (no leakage).
+    columns:
+      - name: attrition
+        description: "Binary target — 1=left, 0=stayed"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: income_per_year
+        description: "MonthlyIncome / (TotalWorkingYears + 1)"
+        tests:
+          - not_null
+      - name: promo_stagnation
+        description: "YearsSinceLastPromotion / (YearsAtCompany + 1)"
+        tests:
+          - not_null
+
+  - name: gold_attrition_analytics
+    description: >
+      Pre-aggregated analytics table for Power BI dashboards.
+      Attrition rates sliced by department, role, overtime, tenure band, etc.
+      Human-readable labels (not encoded).
+    columns:
+      - name: dimension_name
+        description: "The grouping dimension (e.g. 'department', 'job_role')"
+        tests:
+          - not_null
+      - name: dimension_value
+        description: "The category value within the dimension"
+        tests:
+          - not_null
+      - name: total_employees
+        tests:
+          - not_null
+      - name: attrition_count
+        tests:
+          - not_null
+      - name: attrition_rate
+        tests:
+          - not_null

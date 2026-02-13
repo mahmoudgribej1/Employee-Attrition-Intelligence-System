@@ -1,15 +1,8 @@
-# Name your project! Project names should contain only lowercase characters
-# and underscores. A good package name should reflect your organization's
-# name or the intended use of these models
 name: 'employee_attrition'
 version: '1.0.0'
-config-version: 2
 
-# This setting configures which "profile" dbt uses for this project.
-# The profile defines your Databricks connection details
 profile: 'employee_attrition'
 
-# These configurations specify where dbt should look for different types of files.
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -17,109 +10,21 @@ seed-paths: ["seeds"]
 macro-paths: ["macros"]
 snapshot-paths: ["snapshots"]
 
-# Directory for compiled SQL and run artifacts
-target-path: "target"
 clean-targets:
   - "target"
   - "dbt_packages"
 
-# =============================================================================
-# MODEL CONFIGURATIONS
-# =============================================================================
-# Configure how models are materialized and where they're stored
-
 models:
   employee_attrition:
-    
-    # Bronze layer models (source definitions only, no SQL models here)
     bronze:
-      +enabled: true
-    
-    # Silver layer - Cleaned and validated data
+      +materialized: view
+      +schema: bronze
+      +tags: ['bronze']
     silver:
-      +enabled: true
-      +materialized: table              # Create as physical tables
-      +schema: silver                   # Creates schema: workspace.silver
-      +tags: ["silver", "cleaned"]
-      +on_schema_change: "sync_all_columns"  # Auto-update schema if source changes
-      
-      # Performance optimization for large tables
-      +file_format: delta               # Use Delta Lake format
-      +partition_by: []                 # Add partitioning if needed (e.g., ["year", "month"])
-      
-      # Data retention
-      +persist_docs:
-        relation: true
-        columns: true
-    
-    # Gold layer - Business metrics and aggregations
+      +materialized: table
+      +schema: silver
+      +tags: ['silver']
     gold:
-      +enabled: true
-      +materialized: table              # Business metrics as tables
-      +schema: gold                     # Creates schema: workspace.gold
-      +tags: ["gold", "business_metrics"]
-      +on_schema_change: "sync_all_columns"
-      
-      +file_format: delta
-      +persist_docs:
-        relation: true
-        columns: true
-
-# =============================================================================
-# VARIABLE DEFINITIONS
-# =============================================================================
-# Variables that can be used across your dbt project
-
-vars:
-  # Current date for tenure calculations (overrideable at runtime)
-  analysis_date: "{{ modules.datetime.datetime.now().strftime('%Y-%m-%d') }}"
-  
-  # Engagement thresholds (from your EDA findings)
-  low_engagement_threshold: 3         # Scores ≤ 3 are "at risk"
-  
-  # Tenure categories
-  new_hire_tenure_months: 3           # ≤ 3 months = new hire
-  first_year_tenure_months: 12        # ≤ 12 months = first year
-  
-  # Date formats in source data
-  date_format: "dd-MMM-yy"            # Format: 03-Jul-23
-
-# =============================================================================
-# TEST CONFIGURATIONS
-# =============================================================================
-# Configure data quality tests
-
-tests:
-  employee_attrition:
-    +severity: warn                    # Tests generate warnings, not errors
-    +store_failures: true              # Store failed test records for review
-    +schema: test_failures             # Where to store failures
-
-# =============================================================================
-# SEEDS CONFIGURATION
-# =============================================================================
-# For static CSV files (if you add any reference data)
-
-seeds:
-  employee_attrition:
-    +schema: seed_data
-    +quote_columns: false
-    +enabled: true
-
-# =============================================================================
-# SNAPSHOTS CONFIGURATION
-# =============================================================================
-# For tracking slowly changing dimensions (optional advanced feature)
-
-snapshots:
-  employee_attrition:
-    +target_schema: snapshots
-    +unique_key: id
-    +strategy: timestamp
-    +updated_at: updated_at
-
-# =============================================================================
-# DOCUMENTATION
-# =============================================================================
-
-# Generate and serve documentation with: dbt docs generate && dbt docs serve
+      +materialized: table
+      +schema: gold
+      +tags: ['gold']

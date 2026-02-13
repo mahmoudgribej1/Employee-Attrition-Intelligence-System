@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: silver_ibm_hr_cleaned
+    description: >
+      Cleaned IBM HR dataset. Drops constant columns (EmployeeCount, Over18, StandardHours)
+      and ID column (EmployeeNumber). Standardizes column names to snake_case.
+      Casts categorical Yes/No fields to binary integers.
+    columns:
+      - name: age
+        tests:
+          - not_null
+      - name: attrition
+        description: "Binary target — 1=Yes (left), 0=No (stayed)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: overtime
+        description: "Binary — 1=Yes, 0=No"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: gender
+        description: "Binary — 1=Male, 0=Female"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+      - name: monthly_income
+        tests:
+          - not_null
+      - name: department
+        tests:
+          - not_null
+      - name: job_role
+        tests:
+          - not_null
+      - name: marital_status
+        tests:
+          - not_null
+      - name: business_travel
+        tests:
+          - not_null
+      - name: education_field
+        tests:
+          - not_null

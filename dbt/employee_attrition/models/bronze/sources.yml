@@ -2,234 +2,110 @@ version: 2
 
 sources:
   - name: bronze
-    description: "Raw data loaded from CSV files into Databricks"
-    database: workspace
+    catalog: workspace
     schema: bronze
-    
+    description: "Raw ingested data from IBM HR Analytics CSV"
     tables:
-      - name: employee_data
-        description: "Raw employee HR data with 3,000 records"
-        identifier: employee_data
-        
-        # Move meta into config block (dbt 1.11+ requirement)
-        config:
-          meta:
-            data_quality_notes: "991 records have EmployeeStatus='Active' but ExitDate is not null"
-        
+      - name: ibm_hr_employee_attrition
+        description: "Raw IBM HR Employee Attrition dataset — 1,470 rows × 35 columns. Loaded as-is from CSV via ingestion notebook."
         columns:
-          - name: EmpID
-            description: "Unique employee identifier"
+          - name: Age
+            description: "Employee age in years"
+            tests:
+              - not_null
+          - name: Attrition
+            description: "Target variable — Yes/No"
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['Yes', 'No']
+          - name: BusinessTravel
+            description: "Travel frequency — Non-Travel, Travel_Rarely, Travel_Frequently"
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['Non-Travel', 'Travel_Rarely', 'Travel_Frequently']
+          - name: DailyRate
+            description: "Daily pay rate"
+          - name: Department
+            description: "Employee department"
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ['Sales', 'Research & Development', 'Human Resources']
+          - name: DistanceFromHome
+            description: "Distance from home in miles"
+          - name: Education
+            description: "Education level (1=Below College, 2=College, 3=Bachelor, 4=Master, 5=Doctor)"
+          - name: EducationField
+            description: "Field of education"
+            tests:
+              - not_null
+          - name: EmployeeCount
+            description: "Always 1 — constant column, drop in Silver"
+          - name: EmployeeNumber
+            description: "Unique employee ID"
             tests:
               - unique
               - not_null
-          
-          - name: FirstName
-            description: "Employee first name"
-          
-          - name: LastName
-            description: "Employee last name"
-          
-          - name: StartDate
-            description: "Employment start date (format: dd-MMM-yy)"
-          
-          - name: ExitDate
-            description: "Employment end date - 48.9% missing (active employees)"
-          
-          - name: Title
-            description: "Job title/position"
-          
-          - name: Supervisor
-            description: "Direct manager name"
-          
-          - name: ADEmail
-            description: "Work email address"
-          
-          - name: BusinessUnit
-            description: "Business unit assignment"
-          
-          - name: EmployeeStatus
-            description: "Employment status (Active/Terminated)"
-          
-          - name: EmployeeType
-            description: "Employment type (Full-time/Part-time/Contract)"
-          
-          - name: PayZone
-            description: "Salary band/range"
-          
-          - name: EmployeeClassificationType
-            description: "Employee classification category"
-          
-          - name: TerminationType
-            description: "Reason category for termination"
-          
-          - name: TerminationDescription
-            description: "Detailed termination reason - 48.9% missing"
-          
-          - name: DepartmentType
-            description: "Department assignment"
-          
-          - name: Division
-            description: "Division/business segment"
-          
-          - name: DOB
-            description: "Date of birth"
-          
-          - name: State
-            description: "Work location state"
-          
-          - name: JobFunctionDescription
-            description: "Job role description"
-          
-          - name: GenderCode
-            description: "Gender code"
-          
-          - name: LocationCode
-            description: "Physical location code"
-          
-          - name: RaceDesc
-            description: "Race/ethnicity description"
-          
-          - name: MaritalDesc
-            description: "Marital status"
-          
-          - name: Performance Score
-            description: "Performance rating"
-          
-          - name: Current Employee Rating
-            description: "Latest performance rating"
-      
-      - name: employee_engagement_survey_data
-        description: "Employee engagement survey responses - 3,000 records with no missing values"
-        identifier: employee_engagement_survey_data
-        
-        config:
-          meta:
-            data_quality_notes: "94.14% of active employees have low engagement scores (≤3)"
-        
-        columns:
-          - name: Employee_ID
-            description: "Employee identifier (links to employee_data.EmpID)"
-            tests:
-              - not_null
-          
-          - name: Survey_Date
-            description: "Date survey was completed"
-          
-          - name: Engagement_Score
-            description: "Engagement level score (typically 1-5 scale)"
-            tests:
-              - not_null
-          
-          - name: Satisfaction_Score
-            description: "Job satisfaction score"
-            tests:
-              - not_null
-          
-          - name: Work-Life_Balance_Score
-            description: "Work-life balance rating"
-            tests:
-              - not_null
-      
-      - name: recruitment_data
-        description: "Job applications and hiring pipeline - 3,000 records"
-        identifier: recruitment_data
-        
-        config:
-          meta:
-            data_quality_notes: "0 hired candidates - no successful recruitments in this dataset"
-        
-        columns:
-          - name: Applicant_ID
-            description: "Unique applicant identifier"
-            tests:
-              - unique
-              - not_null
-          
-          - name: Application_Date
-            description: "Date application was submitted"
-          
-          - name: First_Name
-            description: "Applicant first name"
-          
-          - name: Last_Name
-            description: "Applicant last name"
-          
+          - name: EnvironmentSatisfaction
+            description: "Environment satisfaction (1-4 scale)"
           - name: Gender
-            description: "Applicant gender"
-          
-          - name: Date_of_Birth
-            description: "Applicant date of birth"
-          
-          - name: Phone_Number
-            description: "Contact phone"
-          
-          - name: Email
-            description: "Contact email"
-          
-          - name: Address
-            description: "Residential address"
-          
-          - name: City
-            description: "City of residence"
-          
-          - name: State
-            description: "State of residence"
-          
-          - name: Zip_Code
-            description: "Postal code"
-          
-          - name: Country
-            description: "Country of residence"
-          
-          - name: Education_Level
-            description: "Highest education achieved"
-          
-          - name: Years_of_Experience
-            description: "Years of relevant experience"
-          
-          - name: Desired_Salary
-            description: "Expected salary"
-          
-          - name: Job_Title
-            description: "Position applied for"
-          
-          - name: Status
-            description: "Application status (Applied/Interviewed/Offered/Hired/Rejected)"
-      
-      - name: training_and_development_data
-        description: "Employee training program records - 3,000 sessions"
-        identifier: training_and_development_data
-        
-        config:
-          meta:
-            training_summary: "Total investment: $1,675,886.09 across 3,000 employees ($558.63 per employee)"
-        
-        columns:
-          - name: Employee_ID
-            description: "Employee identifier"
+            description: "Male/Female"
+            tests:
+              - accepted_values:
+                  values: ['Male', 'Female']
+          - name: HourlyRate
+            description: "Hourly pay rate"
+          - name: JobInvolvement
+            description: "Job involvement level (1-4 scale)"
+          - name: JobLevel
+            description: "Job level (1-5)"
+          - name: JobRole
+            description: "Job role title"
             tests:
               - not_null
-          
-          - name: Training_Date
-            description: "Date training was conducted"
-          
-          - name: Training_Program_Name
-            description: "Name of training program"
-          
-          - name: Training_Type
-            description: "Category/format of training"
-          
-          - name: Training_Outcome
-            description: "Result (Completed/Failed/In Progress)"
-          
-          - name: Location
-            description: "Training venue"
-          
-          - name: Trainer
-            description: "Training instructor"
-          
-          - name: Training_Duration(Days)
-            description: "Length of training in days"
-          
-          - name: Training_Cost
-            description: "Cost of training program"
+          - name: JobSatisfaction
+            description: "Job satisfaction (1-4 scale)"
+          - name: MaritalStatus
+            description: "Single, Married, Divorced"
+            tests:
+              - accepted_values:
+                  values: ['Single', 'Married', 'Divorced']
+          - name: MonthlyIncome
+            description: "Monthly income in dollars"
+          - name: MonthlyRate
+            description: "Monthly rate"
+          - name: NumCompaniesWorked
+            description: "Number of companies worked at previously"
+          - name: Over18
+            description: "Always Y — constant column, drop in Silver"
+          - name: OverTime
+            description: "Whether employee works overtime — Yes/No"
+            tests:
+              - accepted_values:
+                  values: ['Yes', 'No']
+          - name: PercentSalaryHike
+            description: "Percent salary hike last year"
+          - name: PerformanceRating
+            description: "Performance rating (3-4 in this dataset)"
+          - name: RelationshipSatisfaction
+            description: "Relationship satisfaction (1-4 scale)"
+          - name: StandardHours
+            description: "Always 80 — constant column, drop in Silver"
+          - name: StockOptionLevel
+            description: "Stock option level (0-3)"
+          - name: TotalWorkingYears
+            description: "Total years of work experience"
+          - name: TrainingTimesLastYear
+            description: "Number of trainings attended last year"
+          - name: WorkLifeBalance
+            description: "Work-life balance rating (1-4 scale)"
+          - name: YearsAtCompany
+            description: "Years at current company"
+          - name: YearsInCurrentRole
+            description: "Years in current role"
+          - name: YearsSinceLastPromotion
+            description: "Years since last promotion"
+          - name: YearsWithCurrManager
+            description: "Years with current manager"
