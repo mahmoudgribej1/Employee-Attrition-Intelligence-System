@@ -10,6 +10,7 @@ An end-to-end data engineering and machine learning project that predicts employ
 
 - **Medallion Data Pipeline** — Raw CSV ingested into Bronze, cleaned and typed in Silver, modeled into a star schema in Gold via dbt on Databricks.
 - **3 ML Models Trained & Compared** — Logistic Regression, Random Forest, and Gradient-Boosted Trees evaluated on a class-imbalanced dataset using AUC-ROC, F1, and Recall as primary metrics.
+- **Batch Scoring Pipeline** — Best model loaded from MLflow, scores all 1,470 employees, writes risk predictions (probability + tier) back to Gold layer. Closes the loop from training to actionable output.
 - **Star Schema for BI** — 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
 - **Interactive Power BI Dashboards** — 3-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, and compensation analysis.
 
@@ -26,11 +27,14 @@ An end-to-end data engineering and machine learning project that predicts employ
 │  │ Raw CSV   │    │ Cleaned/Typed │    │  Star Schema (5D + 1F)  │ │
 │  │           │    │               │    │  ML Feature Store        │ │
 │  └──────────┘    └───────────────┘    │  Analytics Aggregates    │ │
-│                        dbt            └──────────┬───────────────┘ │
+│                        dbt            │  Attrition Predictions   │ │
+│                                       └──────────┬───────────────┘ │
 │                                                  │                 │
 │  ┌───────────────────────────────┐               │                 │
 │  │  MLflow Experiment Tracking   │◀──────────────┤                 │
 │  │  Logistic Reg · RF · GBT     │               │                 │
+│  │                               │───────────────┤                 │
+│  │  Batch Scoring Pipeline       │  model+scaler │                 │
 │  └───────────────────────────────┘               │                 │
 └──────────────────────────────────────────────────┼─────────────────┘
                                                    │
@@ -79,6 +83,7 @@ Three purpose-built outputs:
 |---|---|---|
 | `gold_ml_features` | Engineered feature set for ML training (interaction terms, ratios, department aggregates) | 1,470 |
 | `gold_attrition_analytics` | Pre-aggregated metrics by 10+ dimensions for exploratory analysis | ~110 |
+| `gold_attrition_predictions` | Batch-scored risk predictions from the trained Logistic Regression model | 1,470 |
 | **Star Schema** (5 dims + 1 fact) | Power BI-optimized warehouse with surrogate keys and referential integrity | 1,470 |
 
 **Star Schema Design:**
@@ -119,6 +124,18 @@ All experiments logged to MLflow with parameters, metrics, the trained model art
 
 ![ML Results](screenshots/ml_model_comparison.png)
 
+### Batch Scoring
+
+The trained model isn't just evaluated — it's deployed as a batch scoring pipeline (`05_ml_batch_scoring.ipynb`):
+
+1. Retrieves the best model + fitted scaler from MLflow (auto-selects by AUC-ROC)
+2. Loads the full feature set from `gold_ml_features`
+3. Scores all 1,470 employees → continuous attrition probability (0–1)
+4. Assigns risk tiers: **High** (>60%), **Medium** (30–60%), **Low** (<30%)
+5. Writes `workspace.gold.gold_attrition_predictions` — ready for Power BI
+
+This is the step that turns a trained model into a decision-support tool.
+
 ---
 
 ## Power BI Dashboard
@@ -152,6 +169,7 @@ Employee-Attrition-Intelligence-System/
 │   │   └── Bronze Layer Ingestion.ipynb       # PySpark CSV → Bronze table
 │   └── notebooks/
 │       ├── 04_ml_model_training.ipynb         # ML pipeline (3 models + MLflow)
+│       ├── 05_ml_batch_scoring.ipynb          # Batch scoring → predictions table
 │       └── Employee Attrition EDA.ipynb       # Exploratory data analysis
 │
 ├── dbt/employee_attrition/
@@ -175,7 +193,7 @@ Employee-Attrition-Intelligence-System/
 │   └── tests/
 │
 ├── dashboards/
-│   └── Employee_Attrition_Dashboard.pbix      # Power BI dashboard file
+│   └── IBM DASHBOARD.pbix                     # Power BI dashboard file
 │
 ├── Dataset/
 │   └── WA_Fn-UseC_-HR-Employee-Attrition.csv  # IBM HR dataset (1,470 records)
@@ -207,7 +225,9 @@ Employee-Attrition-Intelligence-System/
 
 3. **ML Training** — Run `04_ml_model_training.ipynb` on Databricks. Models and metrics are logged to MLflow automatically.
 
-4. **Power BI** — Connect Power BI to your Databricks SQL warehouse, import the 6 star schema tables, and build visuals (or open the included `.pbix` file).
+4. **Batch Scoring** — Run `05_ml_batch_scoring.ipynb` to score all employees and write `gold_attrition_predictions`. The notebook auto-retrieves the best model from MLflow.
+
+5. **Power BI** — Connect Power BI to your Databricks SQL warehouse, import the star schema tables + predictions table, and build visuals (or open the included `.pbix` file).
 
 ---
 
