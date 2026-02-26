@@ -111,6 +111,19 @@ All relationships validated with 32 dbt tests (unique, not_null, accepted_values
 
 ---
 
+## dbt Transformations
+
+All Silver and Gold layer models are built and tested using **dbt-core 1.11** with the **dbt-databricks** adapter. dbt manages the full transformation DAG from raw Bronze data through to the star schema and ML feature store, with 9 models and 32 data quality tests.
+
+- **1 Silver model** - Cleaned and encoded HR dataset
+- **8 Gold models** - 5 dimension tables, 1 fact table, ML features, analytics aggregates
+- **32 tests** - Primary keys, foreign keys, not-null constraints, accepted values
+- **Custom macro** - `generate_schema_name.sql` routes models to the correct Unity Catalog schemas
+
+![dbt Model DAG](screenshots/dbtScreenshot.png)
+
+---
+
 ## ML Model Results
 
 Three classifiers trained on the Gold ML feature set with an 80/20 stratified split. The dataset is imbalanced (~16% attrition), so **Recall** was prioritized alongside AUC-ROC to minimize missed attrition cases.
@@ -133,7 +146,9 @@ Three classifiers trained on the Gold ML feature set with an 80/20 stratified sp
 
 All experiments logged to MLflow with parameters, metrics, the trained model artifact, and a fitted scaler.
 
-![ML Results](screenshots/ml_model_comparison.png)
+![MLflow Experiment Tracking](screenshots/MLscreenshot1.png)
+
+![ML Model Comparison](screenshots/MLscreenshot2.png)
 
 ### Batch Scoring
 
