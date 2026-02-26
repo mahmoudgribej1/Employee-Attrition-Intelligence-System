@@ -11,7 +11,7 @@ An end-to-end data engineering and machine learning project that predicts employ
 - **Medallion Data Pipeline** — Raw CSV ingested into Bronze, cleaned and typed in Silver, modeled into a star schema in Gold via dbt on Databricks.
 - **3 ML Models Trained & Compared** — Logistic Regression, Random Forest, and Gradient-Boosted Trees evaluated on a class-imbalanced dataset using AUC-ROC, F1, and Recall as primary metrics.
 - **Batch Scoring Pipeline** — Best model loaded from MLflow, scores all 1,470 employees, writes risk predictions (probability + tier) back to Gold layer. Closes the loop from training to actionable output.
-- **Pipeline Orchestration** — Single-notebook DAG that runs the entire pipeline end-to-end (Bronze → Silver → Gold → ML Training → Scoring) with validation checkpoints and an execution summary.
+- **Pipeline Orchestration** — Automated Databricks Workflow Job with a 6-task DAG (Bronze → Silver → Gold → ML Training → Scoring), inter-task communication via `dbutils.jobs.taskValues`, and a single-notebook driver for quick full runs.
 - **Star Schema for BI** — 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
 - **Interactive Power BI Dashboards** — 4-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, compensation analysis, and ML risk scores.
 
@@ -160,7 +160,11 @@ Task 6: Batch Scoring          1,470 predictions → Gold table
 
 Each task validates row counts and schema before proceeding. If any task fails, the pipeline stops with a clear error. All tables use overwrite mode, making the pipeline fully idempotent.
 
-> **Databricks Standard/Premium:** The same DAG can be converted to a multi-task **Databricks Workflow Job**, enabling `gold_ml_features` and `gold_star_schema` to run in parallel after Silver completes.
+### Databricks Workflow Job
+
+The pipeline is also deployed as a **multi-task Databricks Workflow Job** with a visual DAG. Tasks 3a (ML Features) and 3b (Star Schema) run in parallel after Silver completes, and the ML Training task passes the `best_run_id` to Batch Scoring via `dbutils.jobs.taskValues`.
+
+![Databricks Workflow DAG](screenshots/Job_Pipeline_Databricks.png)
 
 ---
 
@@ -202,7 +206,14 @@ Employee-Attrition-Intelligence-System/
 │       ├── 00_pipeline_orchestration.ipynb    # End-to-end DAG (runs everything)
 │       ├── 04_ml_model_training.ipynb         # ML pipeline (3 models + MLflow)
 │       ├── 05_ml_batch_scoring.ipynb          # Batch scoring → predictions table
-│       └── Employee Attrition EDA.ipynb       # Exploratory data analysis
+│       ├── Employee Attrition EDA.ipynb       # Exploratory data analysis
+│       └── tasks/                             # Individual Workflow Job tasks
+│           ├── task_01_bronze_ingestion.py
+│           ├── task_02_silver_transformation.py
+│           ├── task_03a_gold_ml_features.py
+│           ├── task_03b_gold_star_schema.py
+│           ├── task_04_ml_training.py
+│           └── task_05_batch_scoring.py
 │
 ├── dbt/employee_attrition/
 │   ├── dbt_project.yml
