@@ -34,7 +34,7 @@ dept AS (
 ),
 
 role AS (
-    SELECT job_role_key, job_role_name
+    SELECT job_role_key, job_role_name, department_name
     FROM {{ ref('dim_job_role') }}
 ),
 
@@ -147,7 +147,7 @@ SELECT
 
 FROM silver s
 LEFT JOIN dept d ON s.department = d.department_name
-LEFT JOIN role r ON s.job_role = r.job_role_name
+LEFT JOIN role r ON s.job_role = r.job_role_name AND s.department = r.department_name
 LEFT JOIN edu e ON s.education_field = e.education_field_name
 LEFT JOIN marital m ON s.marital_status = m.marital_status_name
 LEFT JOIN travel t ON s.business_travel = t.business_travel_name
