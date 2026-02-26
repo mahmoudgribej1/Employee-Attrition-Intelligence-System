@@ -1,5 +1,14 @@
 # Employee Attrition Intelligence System
 
+[![Databricks](https://img.shields.io/badge/Databricks-CE-FF3621?logo=databricks&logoColor=white)](https://www.databricks.com/)
+[![Apache Spark](https://img.shields.io/badge/Apache%20Spark-3.5-E25A1C?logo=apache-spark&logoColor=white)](https://spark.apache.org/)
+[![dbt](https://img.shields.io/badge/dbt-1.11-FF694B?logo=dbt&logoColor=white)](https://www.getdbt.com/)
+[![MLflow](https://img.shields.io/badge/MLflow-2.x-0194E2?logo=mlflow&logoColor=white)](https://mlflow.org/)
+[![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?logo=power-bi&logoColor=black)](https://powerbi.microsoft.com/)
+[![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![SQL](https://img.shields.io/badge/SQL-Spark%20SQL-4479A1?logo=databricks&logoColor=white)](https://spark.apache.org/sql/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?logo=github&logoColor=white)](https://github.com/mahmoudgribej1/Employee-Attrition-Intelligence-System)
+
 An end-to-end data engineering and machine learning project that predicts employee attrition using the IBM HR Analytics dataset. Built on Databricks with a Medallion architecture (Bronze → Silver → Gold), dbt for transformation orchestration, MLflow for experiment tracking, and Power BI for executive dashboards.
 
 ![Architecture](screenshots/architecture_diagram.png)
@@ -8,12 +17,12 @@ An end-to-end data engineering and machine learning project that predicts employ
 
 ## Project Highlights
 
-- **Medallion Data Pipeline** — Raw CSV ingested into Bronze, cleaned and typed in Silver, modeled into a star schema in Gold via dbt on Databricks.
-- **3 ML Models Trained & Compared** — Logistic Regression, Random Forest, and Gradient-Boosted Trees evaluated on a class-imbalanced dataset using AUC-ROC, F1, and Recall as primary metrics.
-- **Batch Scoring Pipeline** — Best model loaded from MLflow, scores all 1,470 employees, writes risk predictions (probability + tier) back to Gold layer. Closes the loop from training to actionable output.
-- **Pipeline Orchestration** — Automated Databricks Workflow Job with a 6-task DAG (Bronze → Silver → Gold → ML Training → Scoring), inter-task communication via `dbutils.jobs.taskValues`, and a single-notebook driver for quick full runs.
-- **Star Schema for BI** — 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
-- **Interactive Power BI Dashboards** — 4-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, compensation analysis, and ML risk scores.
+- **Medallion Data Pipeline** - Raw CSV ingested into Bronze, cleaned and typed in Silver, modeled into a star schema in Gold via dbt on Databricks.
+- **3 ML Models Trained & Compared** - Logistic Regression, Random Forest, and Gradient-Boosted Trees evaluated on a class-imbalanced dataset using AUC-ROC, F1, and Recall as primary metrics.
+- **Batch Scoring Pipeline** - Best model loaded from MLflow, scores all 1,470 employees, writes risk predictions (probability + tier) back to Gold layer. Closes the loop from training to actionable output.
+- **Pipeline Orchestration** - Automated Databricks Workflow Job with a 6-task DAG (Bronze → Silver → Gold → ML Training → Scoring), inter-task communication via `dbutils.jobs.taskValues`, and a single-notebook driver for quick full runs.
+- **Star Schema for BI** - 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
+- **Interactive Power BI Dashboards** - 4-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, compensation analysis, and ML risk scores.
 
 ---
 
@@ -112,7 +121,7 @@ Three classifiers trained on the Gold ML feature set with an 80/20 stratified sp
 | Random Forest | 0.7840 | 0.2388 | 0.1702 | 0.4000 |
 | Gradient-Boosted Trees | 0.7906 | 0.3750 | 0.3191 | 0.4545 |
 
-**Selected Model:** Logistic Regression — highest AUC-ROC (0.84) and substantially better recall (68%), meaning it correctly identified ~2 out of 3 employees who actually left. The trade-off in precision is acceptable here since the cost of missing an at-risk employee outweighs the cost of a false alert.
+**Selected Model:** Logistic Regression - highest AUC-ROC (0.84) and substantially better recall (68%), meaning it correctly identified ~2 out of 3 employees who actually left. The trade-off in precision is acceptable here since the cost of missing an at-risk employee outweighs the cost of a false alert.
 
 **Key Predictive Factors:**
 - Overtime status
@@ -128,13 +137,13 @@ All experiments logged to MLflow with parameters, metrics, the trained model art
 
 ### Batch Scoring
 
-The trained model isn't just evaluated — it's deployed as a batch scoring pipeline (`05_ml_batch_scoring.ipynb`):
+The trained model isn't just evaluated - it's deployed as a batch scoring pipeline (`05_ml_batch_scoring.ipynb`):
 
 1. Retrieves the best model + fitted scaler from MLflow (auto-selects by AUC-ROC)
 2. Loads the full feature set from `gold_ml_features`
 3. Scores all 1,470 employees → continuous attrition probability (0–1)
 4. Assigns risk tiers: **High** (>60%), **Medium** (30–60%), **Low** (<30%)
-5. Writes `workspace.gold.gold_attrition_predictions` — ready for Power BI
+5. Writes `workspace.gold.gold_attrition_predictions` - ready for Power BI
 
 This is the step that turns a trained model into a decision-support tool.
 
@@ -172,22 +181,22 @@ The pipeline is also deployed as a **multi-task Databricks Workflow Job** with a
 
 Four-page executive dashboard connected live to Databricks via the SQL connector. Themed with IBM Carbon Design System dark palette.
 
-### Page 1 — Attrition Overview
+### Page 1 - Attrition Overview
 KPI cards (total employees, attrition rate, avg income, avg tenure), attrition breakdown by department and age band, gender distribution, overtime impact.
 
 ![Dashboard Overview](screenshots/Overview_Dashboard.png)
 
-### Page 2 — Risk Factors
+### Page 2 - Risk Factors
 Satisfaction heatmap, overtime risk multiplier, business travel impact, marital status analysis, years-at-company attrition curve.
 
 ![Risk Factors](screenshots/Risk_Factors.png)
 
-### Page 3 — Compensation & Growth
+### Page 3 - Compensation & Growth
 Income distribution by attrition status, income gap analysis (leavers vs stayers), salary hike patterns, stock option impact, experience vs income scatter.
 
 ![Compensation](screenshots/Compensation.png)
 
-### Page 4 — ML Risk Scores
+### Page 4 - ML Risk Scores
 Batch-scored attrition probabilities from the Logistic Regression model. Risk tier distribution, department breakdown, top at-risk employees table, probability vs income scatter.
 
 ![ML Risk Scores](screenshots/ML_Attriction_Risk_Scores.png)
@@ -257,9 +266,9 @@ Employee-Attrition-Intelligence-System/
 
 ### Steps
 
-1. **Upload Data** — Upload the CSV to Databricks DBFS (`dbfs:/FileStore/WA_Fn_UseC__HR_Employee_Attrition.csv`).
+1. **Upload Data** - Upload the CSV to Databricks DBFS (`dbfs:/FileStore/WA_Fn_UseC__HR_Employee_Attrition.csv`).
 
-2. **Run the Full Pipeline** — Open `00_pipeline_orchestration.ipynb` on Databricks and **Run All**. This single notebook executes Bronze ingestion, Silver/Gold transformations, ML training, and batch scoring in sequence with validation checkpoints.
+2. **Run the Full Pipeline** - Open `00_pipeline_orchestration.ipynb` on Databricks and **Run All**. This single notebook executes Bronze ingestion, Silver/Gold transformations, ML training, and batch scoring in sequence with validation checkpoints.
 
    Alternatively, run each step individually:
    - `Bronze Layer Ingestion.ipynb` → Bronze table
@@ -267,13 +276,13 @@ Employee-Attrition-Intelligence-System/
    - `04_ml_model_training.ipynb` → MLflow experiments
    - `05_ml_batch_scoring.ipynb` → Predictions table
 
-3. **Power BI** — Connect Power BI to your Databricks SQL warehouse, import the star schema tables + predictions table, and build visuals (or open the included `.pbix` file).
+3. **Power BI** - Connect Power BI to your Databricks SQL warehouse, import the star schema tables + predictions table, and build visuals (or open the included `.pbix` file).
 
 ---
 
 ## Dataset
 
-[IBM HR Analytics Employee Attrition & Performance](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset) — 1,470 employees, 35 features, binary attrition target (~16% positive class).
+[IBM HR Analytics Employee Attrition & Performance](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset) - 1,470 employees, 35 features, binary attrition target (~16% positive class).
 
 ---
 
