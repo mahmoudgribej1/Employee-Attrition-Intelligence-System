@@ -7,7 +7,6 @@
 [![Power BI](https://img.shields.io/badge/Power%20BI-Desktop-F2C811?logo=power-bi&logoColor=black)](https://powerbi.microsoft.com/)
 [![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![SQL](https://img.shields.io/badge/SQL-Spark%20SQL-4479A1?logo=databricks&logoColor=white)](https://spark.apache.org/sql/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?logo=github&logoColor=white)](https://github.com/mahmoudgribej1/Employee-Attrition-Intelligence-System)
 
 An end-to-end data engineering and machine learning project that predicts employee attrition using the IBM HR Analytics dataset. Built on Databricks with a Medallion architecture (Bronze → Silver → Gold), dbt for transformation orchestration, MLflow for experiment tracking, and Power BI for executive dashboards.
 
@@ -24,39 +23,6 @@ An end-to-end data engineering and machine learning project that predicts employ
 - **Star Schema for BI** - 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
 - **Interactive Power BI Dashboards** - 4-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, compensation analysis, and ML risk scores.
 
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Databricks Lakehouse                        │
-│                                                                    │
-│  ┌──────────┐    ┌───────────────┐    ┌──────────────────────────┐ │
-│  │  Bronze   │───▶│    Silver     │───▶│          Gold            │ │
-│  │ Raw CSV   │    │ Cleaned/Typed │    │  Star Schema (5D + 1F)  │ │
-│  │           │    │               │    │  ML Feature Store        │ │
-│  └──────────┘    └───────────────┘    │  Analytics Aggregates    │ │
-│                        dbt            │  Attrition Predictions   │ │
-│                                       └──────────┬───────────────┘ │
-│                                                  │                 │
-│  ┌───────────────────────────────┐               │                 │
-│  │  MLflow Experiment Tracking   │◀──────────────┤                 │
-│  │  Logistic Reg · RF · GBT     │               │                 │
-│  │                        │
-│  ┌───────────────────────────────┐               │                 │
-│  │  Batch Scoring Pipeline       │  model+scaler │                 │
-│  └───────────────────────────────┘               │                 │
-└──────────────────────────────────────────────────┼─────────────────┘
-                                                   │
-                                          Databricks SQL
-                                           Connector
-                                                   │
-                                        ┌──────────▼──────────┐
-                                        │     Power BI        │
-                                        │  4-Page Dashboard   │
-                                        └─────────────────────┘
-```
 
 ---
 
