@@ -12,7 +12,7 @@ An end-to-end data engineering and machine learning project that predicts employ
 - **3 ML Models Trained & Compared** — Logistic Regression, Random Forest, and Gradient-Boosted Trees evaluated on a class-imbalanced dataset using AUC-ROC, F1, and Recall as primary metrics.
 - **Batch Scoring Pipeline** — Best model loaded from MLflow, scores all 1,470 employees, writes risk predictions (probability + tier) back to Gold layer. Closes the loop from training to actionable output.
 - **Star Schema for BI** — 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
-- **Interactive Power BI Dashboards** — 3-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, and compensation analysis.
+- **Interactive Power BI Dashboards** — 4-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, compensation analysis, and ML risk scores.
 
 ---
 
@@ -33,7 +33,8 @@ An end-to-end data engineering and machine learning project that predicts employ
 │  ┌───────────────────────────────┐               │                 │
 │  │  MLflow Experiment Tracking   │◀──────────────┤                 │
 │  │  Logistic Reg · RF · GBT     │               │                 │
-│  │                               │───────────────┤                 │
+│  │                        │
+│  ┌───────────────────────────────┐               │                 │
 │  │  Batch Scoring Pipeline       │  model+scaler │                 │
 │  └───────────────────────────────┘               │                 │
 └──────────────────────────────────────────────────┼─────────────────┘
@@ -43,7 +44,7 @@ An end-to-end data engineering and machine learning project that predicts employ
                                                    │
                                         ┌──────────▼──────────┐
                                         │     Power BI        │
-                                        │  3-Page Dashboard   │
+                                        │  4-Page Dashboard   │
                                         └─────────────────────┘
 ```
 
@@ -140,22 +141,27 @@ This is the step that turns a trained model into a decision-support tool.
 
 ## Power BI Dashboard
 
-Three-page executive dashboard connected live to Databricks via the SQL connector. Themed with IBM Carbon Design System dark palette.
+Four-page executive dashboard connected live to Databricks via the SQL connector. Themed with IBM Carbon Design System dark palette.
 
 ### Page 1 — Attrition Overview
 KPI cards (total employees, attrition rate, avg income, avg tenure), attrition breakdown by department and age band, gender distribution, overtime impact.
 
-![Dashboard Overview](screenshots/dashboard_overview.png)
+![Dashboard Overview](screenshots/Overview_Dashboard.png)
 
 ### Page 2 — Risk Factors
 Satisfaction heatmap, overtime risk multiplier, business travel impact, marital status analysis, years-at-company attrition curve.
 
-![Risk Factors](screenshots/dashboard_risk_factors.png)
+![Risk Factors](screenshots/Risk_Factors.png)
 
 ### Page 3 — Compensation & Growth
 Income distribution by attrition status, income gap analysis (leavers vs stayers), salary hike patterns, stock option impact, experience vs income scatter.
 
-![Compensation](screenshots/dashboard_compensation.png)
+![Compensation](screenshots/Compensation.png)
+
+### Page 4 — ML Risk Scores
+Batch-scored attrition probabilities from the Logistic Regression model. Risk tier distribution, department breakdown, top at-risk employees table, probability vs income scatter.
+
+![ML Risk Scores](screenshots/ML_Attriction_Risk_Scores.png)
 
 ---
 
