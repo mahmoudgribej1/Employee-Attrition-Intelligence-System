@@ -11,6 +11,7 @@ An end-to-end data engineering and machine learning project that predicts employ
 - **Medallion Data Pipeline** — Raw CSV ingested into Bronze, cleaned and typed in Silver, modeled into a star schema in Gold via dbt on Databricks.
 - **3 ML Models Trained & Compared** — Logistic Regression, Random Forest, and Gradient-Boosted Trees evaluated on a class-imbalanced dataset using AUC-ROC, F1, and Recall as primary metrics.
 - **Batch Scoring Pipeline** — Best model loaded from MLflow, scores all 1,470 employees, writes risk predictions (probability + tier) back to Gold layer. Closes the loop from training to actionable output.
+- **Pipeline Orchestration** — Single-notebook DAG that runs the entire pipeline end-to-end (Bronze → Silver → Gold → ML Training → Scoring) with validation checkpoints and an execution summary.
 - **Star Schema for BI** — 5 dimension tables + 1 fact table designed for direct Power BI consumption with surrogate keys and referential integrity enforced through 32 dbt tests.
 - **Interactive Power BI Dashboards** — 4-page executive dashboard with IBM Carbon Design dark theme, covering attrition overview, risk factors, compensation analysis, and ML risk scores.
 
@@ -139,6 +140,30 @@ This is the step that turns a trained model into a decision-support tool.
 
 ---
 
+## Pipeline Orchestration
+
+The entire pipeline is automated via a **driver notebook** (`00_pipeline_orchestration.ipynb`) that runs all tasks sequentially with validation checkpoints:
+
+```
+Task 1: Bronze Ingestion       CSV → Delta table
+    │
+Task 2: Silver Transformation  Cleaning, encoding, type casting
+    │
+Task 3: Gold ML Features       80+ engineered features
+    │
+Task 4: Gold Star Schema       5 dims + 1 fact table
+    │
+Task 5: ML Model Training      3 models → MLflow (best auto-selected)
+    │
+Task 6: Batch Scoring          1,470 predictions → Gold table
+```
+
+Each task validates row counts and schema before proceeding. If any task fails, the pipeline stops with a clear error. All tables use overwrite mode, making the pipeline fully idempotent.
+
+> **Databricks Standard/Premium:** The same DAG can be converted to a multi-task **Databricks Workflow Job**, enabling `gold_ml_features` and `gold_star_schema` to run in parallel after Silver completes.
+
+---
+
 ## Power BI Dashboard
 
 Four-page executive dashboard connected live to Databricks via the SQL connector. Themed with IBM Carbon Design System dark palette.
@@ -174,6 +199,7 @@ Employee-Attrition-Intelligence-System/
 │   ├── Bronze/
 │   │   └── Bronze Layer Ingestion.ipynb       # PySpark CSV → Bronze table
 │   └── notebooks/
+│       ├── 00_pipeline_orchestration.ipynb    # End-to-end DAG (runs everything)
 │       ├── 04_ml_model_training.ipynb         # ML pipeline (3 models + MLflow)
 │       ├── 05_ml_batch_scoring.ipynb          # Batch scoring → predictions table
 │       └── Employee Attrition EDA.ipynb       # Exploratory data analysis
@@ -220,20 +246,17 @@ Employee-Attrition-Intelligence-System/
 
 ### Steps
 
-1. **Bronze Ingestion** — Upload the CSV to Databricks DBFS and run `Bronze Layer Ingestion.ipynb` to create `workspace.bronze.ibm_hr_employee_attrition`.
+1. **Upload Data** — Upload the CSV to Databricks DBFS (`dbfs:/FileStore/WA_Fn_UseC__HR_Employee_Attrition.csv`).
 
-2. **dbt Pipeline** — Configure `dbt/employee_attrition/profiles.yml` with your Databricks credentials, then:
-   ```bash
-   cd dbt/employee_attrition
-   dbt run     # Builds silver → gold (9 models)
-   dbt test    # Validates integrity (32 tests)
-   ```
+2. **Run the Full Pipeline** — Open `00_pipeline_orchestration.ipynb` on Databricks and **Run All**. This single notebook executes Bronze ingestion, Silver/Gold transformations, ML training, and batch scoring in sequence with validation checkpoints.
 
-3. **ML Training** — Run `04_ml_model_training.ipynb` on Databricks. Models and metrics are logged to MLflow automatically.
+   Alternatively, run each step individually:
+   - `Bronze Layer Ingestion.ipynb` → Bronze table
+   - `dbt run && dbt test` → Silver + Gold (9 models, 32 tests)
+   - `04_ml_model_training.ipynb` → MLflow experiments
+   - `05_ml_batch_scoring.ipynb` → Predictions table
 
-4. **Batch Scoring** — Run `05_ml_batch_scoring.ipynb` to score all employees and write `gold_attrition_predictions`. The notebook auto-retrieves the best model from MLflow.
-
-5. **Power BI** — Connect Power BI to your Databricks SQL warehouse, import the star schema tables + predictions table, and build visuals (or open the included `.pbix` file).
+3. **Power BI** — Connect Power BI to your Databricks SQL warehouse, import the star schema tables + predictions table, and build visuals (or open the included `.pbix` file).
 
 ---
 
