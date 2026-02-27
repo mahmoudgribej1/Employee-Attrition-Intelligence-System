@@ -10,7 +10,7 @@
 
 An end-to-end data engineering and machine learning project that predicts employee attrition using the IBM HR Analytics dataset. Built on Databricks with a Medallion architecture (Bronze → Silver → Gold), dbt for transformation orchestration, MLflow for experiment tracking, and Power BI for executive dashboards.
 
-![Architecture](screenshots/IBM_ProjectSystemArchitecture.png)
+![Architecture](screenshots/SystemArchitecture.png)
 
 ---
 
